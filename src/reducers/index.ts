@@ -1,8 +1,11 @@
+import { type } from 'os';
 import { combineReducers } from 'redux';
+import { QuizReducer } from './quiz'
 
 const rootReducer = combineReducers({
-    state: () => "On a du pain sur la planche."
+    quiz: QuizReducer
 });
 
+export type IStore = ReturnType<typeof rootReducer>
 export default rootReducer;
 
