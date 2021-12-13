@@ -4,25 +4,31 @@ import Box from '@material-ui/core/Box';
 import { StyledButtonTrue, StyledButtonFalse } from "./style";
 import { connect } from "react-redux";
 import { ThunkDispatch } from "redux-thunk";
-import { AnyAction } from "redux";
 import { IStore } from "./reducers";
+import { getQuizListItem } from "./actions/quiz"
+import { IQuizList, IQuizListItem } from "./models";
+import { getCurrentQuizListItem } from "./selectors/quiz";
 
 interface OwnProps {
 
 }
 
 interface StateProps {
-
+  currentQuizListItem?: IQuizListItem,
+  currentQuizListItemIndex: number,
+  quizListLength: number
 }
 
 interface DispatchProps {
-
+  getQuizListItem: typeof getQuizListItem
 }
 
 type Props = OwnProps & StateProps & DispatchProps
 
 export class App extends Component<Props> {
-
+  componentDidMount(){
+    this.props.getQuizListItem(10, "easy")
+  }
   private renderHeader = () => {
     return (<Grid container direction="row" justify="space-between" alignItems="flex-start">
       <Box mt={10} fontWeight="fontWeightBold" fontSize={40} >
@@ -63,14 +69,14 @@ export class App extends Component<Props> {
 
 const mapStateToProps = (state: IStore): StateProps => {
   return {
-    
+    currentQuizListItem: getCurrentQuizListItem(state),
+    currentQuizListItemIndex: state.quiz.currentQuizItemIndex,
+    quizListLength: state.quiz.quizListItem.length
   }
 }
 
-const mapDispatchToProps = (dispatch: ThunkDispatch<{}, {}, AnyAction>): DispatchProps => {
-  return {
-
-  }
+const mapDispatchToProps: any = {
+  getQuizListItem
 }
 
 export default connect<StateProps, DispatchProps, OwnProps, IStore>(mapStateToProps, mapDispatchToProps)(App)
