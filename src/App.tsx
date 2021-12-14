@@ -5,7 +5,7 @@ import { StyledButtonTrue, StyledButtonFalse } from "./style";
 import { connect } from "react-redux";
 import { ThunkDispatch } from "redux-thunk";
 import { IStore } from "./reducers";
-import { getQuizListItem } from "./actions/quiz"
+import { getQuizListItem, giveAnswer } from "./actions/quiz"
 import { IQuizList, IQuizListItem } from "./models";
 import { getCurrentQuizListItem } from "./selectors/quiz";
 
@@ -16,11 +16,13 @@ interface OwnProps {
 interface StateProps {
   currentQuizListItem?: IQuizListItem,
   currentQuizListItemIndex: number,
-  quizListLength: number
+  quizListLength: number,
+  score: number
 }
 
 interface DispatchProps {
-  getQuizListItem: typeof getQuizListItem
+  getQuizListItem: typeof getQuizListItem,
+  giveAnswer: typeof giveAnswer
 }
 
 type Props = OwnProps & StateProps & DispatchProps
@@ -35,23 +37,30 @@ export class App extends Component<Props> {
         <div style={{ color: "#e55fff" }}>Easy</div>
         <div style={{ color: "#2858fb" }} >Quizy</div>
       </Box>
-      <Box mt={10} fontSize={20} className="txt"> Score : TODO / TODO</Box>
+      <Box mt={10} fontSize={20} className="txt"> Score : {this.props.score} / {this.props.quizListLength}</Box>
     </Grid>)
   }
 
   private renderQuestionInfo = () => {
+    const { quizListLength, currentQuizListItemIndex, currentQuizListItem } = this.props
     return (<Grid container direction="column" alignItems="center" justify="center" style={{ minHeight: '40vh' }}>
-      <div className="txt question_number">Question N° TODO / TODO </div>
-      <div className="txt question_number"> Category TODO </div>
-      <div className="txt" >TypeScript Quiz starter ! Ici nous devrions afficher une question !</div>
+      <div className="txt question_number">Question N° {currentQuizListItemIndex + 1} / {quizListLength} </div>
+      <div className="txt question_number"> Category {currentQuizListItem!.category} </div>
+      <div className="txt" dangerouslySetInnerHTML={{__html: currentQuizListItem!.question}} />
     </Grid>)
+  }
+
+  private answerQuestion = (answer: "True"|"False") => () => {
+    const isCorrectAnswer = answer === this.props.currentQuizListItem!.correct_answer
+    const isLastQuestion = this.props.currentQuizListItemIndex === this.props.quizListLength - 1
+    this.props.giveAnswer(isCorrectAnswer, isLastQuestion)
   }
 
   private renderButton = () => {
     return (
       <Grid container direction="row" alignItems="center" justify="space-evenly" >
-        <StyledButtonTrue>TRUE</StyledButtonTrue>
-        <StyledButtonFalse >FALSE</StyledButtonFalse>
+        <StyledButtonTrue onClick={this.answerQuestion("True")}>TRUE</StyledButtonTrue>
+        <StyledButtonFalse onClick={this.answerQuestion("False")}>FALSE</StyledButtonFalse>
       </Grid>
     )
   }
@@ -60,7 +69,7 @@ export class App extends Component<Props> {
     return (
       <Container maxWidth="lg" >
         {this.renderHeader()}
-        {this.renderQuestionInfo()}
+        {this.props.currentQuizListItem && this.renderQuestionInfo()}
         {this.renderButton()}
       </Container >
     );
@@ -71,13 +80,15 @@ const mapStateToProps = (state: IStore): StateProps => {
   return {
     currentQuizListItem: getCurrentQuizListItem(state),
     currentQuizListItemIndex: state.quiz.currentQuizItemIndex,
-    quizListLength: state.quiz.quizListItem.length
+    quizListLength: state.quiz.quizListItem.length,
+    score: state.quiz.score
   }
 }
 
 const mapDispatchToProps: any = {
-  getQuizListItem
-}
+  getQuizListItem,
+  giveAnswer
+} 
 
 export default connect<StateProps, DispatchProps, OwnProps, IStore>(mapStateToProps, mapDispatchToProps)(App)
 
